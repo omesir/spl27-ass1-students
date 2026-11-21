@@ -48,3 +48,34 @@ size_t offset) const {
         gpu.writeToBlock(slot, offset + i, static_cast<int>(value % 2001ULL) - 1000);
     }
 }
+
+Model::Model(const std::string& id, std::size_t embeddingSize) : modelId(id), embeddingSize(embeddingSize) {}
+
+const std::string& Model::getId() const {
+    return modelId;
+}
+
+std::size_t Model::getEmbeddingSize() const {
+    return embeddingSize;
+}
+
+std::vector<std::string> Model::tokenizer(std::string text) const {
+    std::vector<std::string> tokens;
+    std::string currentToken;
+    for (char c : text) {
+        if (std::isspace(static_cast<unsigned char>(c))) {
+            if (!currentToken.empty()) {
+                tokens.push_back(currentToken);
+                currentToken.clear();
+            }
+        } else {
+            if(std::isdigit(static_cast<unsigned char>(c)) || (std::isalpha(static_cast<unsigned char>(c)))) {
+                currentToken += c;
+            }
+        }
+    }
+    if (!currentToken.empty()) {
+        tokens.push_back(currentToken);
+    }
+    return tokens;
+}

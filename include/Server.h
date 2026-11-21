@@ -5,6 +5,8 @@
 #include <string>
 #include "Request.h"
 #include "GPU.h"
+#include "Model.h"
+#include "SchedulingPolicy.h"
 
 struct GPUConfig{
     std::size_t memoryBytes;
@@ -48,8 +50,22 @@ private:
     std::vector<Request*> waitingRequests;
     std::vector<Request*> activeRequests;
     SchedulingPolicy* policy;
+
+    std::vector<size_t> activeRequestGpus;
+    int currentCycle;
+
+    void clear();
+    void copyFrom(const Server& other);
+    Model* findModelById(const std::string& id) const;
+    int selectBestGPUForRequest(const Request* req, std::vector<PrefixMatch>& matchesOut) const;
+    bool canEverFitOnAnyGPU(const Request* req) const;
 public:
     Server(std::string configPath);
+    Server(const Server& other);
+    Server& operator=(const Server& other);
+    Server(Server&& other) noexcept;
+    ~Server();
+    Server& operator=(Server&& other) noexcept;
     bool step();
     void serve();
 };
