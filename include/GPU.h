@@ -4,6 +4,9 @@
 #include <string>
 #include <cstddef>
 #include <vector>
+#include <map>
+#include "Request.h"
+#include "MemoryBlock.h"
 
 struct PrefixMatch {
     std::size_t matchedTokens;
@@ -30,10 +33,32 @@ public:
     void writeToBlock(std::size_t blockId, std::size_t offset, int value);
     PrefixMatch findLongestCachedPrefix(const std::string& modelId, std::size_t embeddingSize,
                                         const std::vector<std::string>& promptTokens) const;
+
+    std::size_t getBlocksNum() const;
+    std::size_t getBlockSize() const;
+    bool isBlockIdle(std::size_t slot) const;
+    std::size_t getCacheHits() const;
+    std::size_t getEvictions() const;
 private:
     std::size_t blocksNum;
     std::size_t blockSize;
     std::vector<MemoryBlock*> memory;
+
+    std::vector<bool> slotHasPrefix;
+    std::vector<std::string> slotModels;
+    std::vector<std::vector<std::string>> slotPrefixes;
+
+    std::map<int, std::size_t> reservations;
+    std::size_t totalReserved;
+
+    std::size_t cacheHits;
+    std::size_t evictions;
+
+    void clear();
+    void copyFrom(const GPU& other);
+    void clearSlotPrefix(std::size_t slot);
+    int findSlotWithPrefix(const std::string& modelId, const std::vector<std::string>& prefixTokens) const;
+    std::size_t findSlotForPlacement(const std::vector<bool>& protectedSlots);
 };
 
 #endif
